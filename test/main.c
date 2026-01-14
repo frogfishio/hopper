@@ -145,6 +145,120 @@ static const hopper_field_t g_overlay_fields[] = {
     },
 };
 
+static const hopper_field_t g_bad_fields[] = {
+    {
+        .name_ascii = "too_big",
+        .name_len = 7,
+        .offset = 6,
+        .size = 4, // offset+size = 10 > record_bytes (8)
+        .kind = HOPPER_FIELD_BYTES,
+        .pad_byte = 0,
+        .pic = {0},
+        .redefines_index = -1,
+    },
+};
+
+static const hopper_field_t g_overlap_fields[] = {
+    {
+        .name_ascii = "base6",
+        .name_len = 5,
+        .offset = 0,
+        .size = 6,
+        .kind = HOPPER_FIELD_BYTES,
+        .pad_byte = 0,
+        .pic = {0},
+        .redefines_index = -1,
+    },
+    {
+        .name_ascii = "num_overlap",
+        .name_len = 11,
+        .offset = 2, // overlaps bytes[2..5]
+        .size = 4,
+        .kind = HOPPER_FIELD_NUM_I32,
+        .pad_byte = 0,
+        .pic =
+            {
+                .digits = 10,
+                .scale = 0,
+                .is_signed = 1,
+                .usage = HOPPER_USAGE_COMP,
+                .mask_ascii = NULL,
+                .mask_len = 0,
+            },
+        .redefines_index = 0,
+    },
+};
+
+static const hopper_field_t g_scaled_comp_fields[] = {
+    {
+        .name_ascii = "comp_s1",
+        .name_len = 7,
+        .offset = 0,
+        .size = 2,
+        .kind = HOPPER_FIELD_NUM_I32,
+        .pad_byte = 0,
+        .pic =
+            {
+                .digits = 4,
+                .scale = 1,
+                .is_signed = 1,
+                .usage = HOPPER_USAGE_COMP,
+                .mask_ascii = NULL,
+                .mask_len = 0,
+            },
+        .redefines_index = -1,
+    },
+    {
+        .name_ascii = "comp3_s1",
+        .name_len = 8,
+        .offset = 2,
+        .size = 3,
+        .kind = HOPPER_FIELD_NUM_I32,
+        .pad_byte = 0,
+        .pic =
+            {
+                .digits = 5,
+                .scale = 1,
+                .is_signed = 1,
+                .usage = HOPPER_USAGE_COMP3,
+                .mask_ascii = NULL,
+                .mask_len = 0,
+            },
+        .redefines_index = -1,
+    },
+};
+
+static const hopper_field_t g_overlay_separate_fields[] = {
+    {
+        .name_ascii = "raw_a",
+        .name_len = 5,
+        .offset = 0,
+        .size = 4,
+        .kind = HOPPER_FIELD_NUM_I32,
+        .pad_byte = 0,
+        .pic =
+            {
+                .digits = 4,
+                .scale = 0,
+                .is_signed = 1,
+                .usage = HOPPER_USAGE_COMP,
+                .mask_ascii = NULL,
+                .mask_len = 0,
+            },
+        .redefines_index = -1,
+    },
+    {
+        .name_ascii = "raw_b",
+        .name_len = 5,
+        .offset = 4,
+        .size = 4,
+        .kind = HOPPER_FIELD_BYTES,
+        .pad_byte = 0,
+        .pic = {0},
+        .redefines_index = -1,
+    },
+};
+
 static const hopper_layout_t g_layouts[] = {
     {
         .name_ascii = "Sample",
@@ -161,6 +275,38 @@ static const hopper_layout_t g_layouts[] = {
         .layout_id = 2,
         .fields = g_overlay_fields,
         .field_count = sizeof(g_overlay_fields) / sizeof(g_overlay_fields[0]),
+    },
+    {
+        .name_ascii = "BadBounds",
+        .name_len = 9,
+        .record_bytes = 8,
+        .layout_id = 3,
+        .fields = g_bad_fields,
+        .field_count = sizeof(g_bad_fields) / sizeof(g_bad_fields[0]),
+    },
+    {
+        .name_ascii = "OverlapPartial",
+        .name_len = 14,
+        .record_bytes = 10,
+        .layout_id = 4,
+        .fields = g_overlap_fields,
+        .field_count = sizeof(g_overlap_fields) / sizeof(g_overlap_fields[0]),
+    },
+    {
+        .name_ascii = "ScaledComp",
+        .name_len = 10,
+        .record_bytes = 8,
+        .layout_id = 5,
+        .fields = g_scaled_comp_fields,
+        .field_count = sizeof(g_scaled_comp_fields) / sizeof(g_scaled_comp_fields[0]),
+    },
+    {
+        .name_ascii = "OverlaySeparate",
+        .name_len = 15,
+        .record_bytes = 8,
+        .layout_id = 6,
+        .fields = g_overlay_separate_fields,
+        .field_count = sizeof(g_overlay_separate_fields) / sizeof(g_overlay_separate_fields[0]),
     },
 };
 
@@ -420,6 +566,165 @@ static void test_overlay_bounds(void) {
   check(hopper_field_get_bytes(h, r.ref, 0, small_dst), HOPPER_OK);
 }
 
+static void test_bad_field_bounds(void) {
+  uint8_t arena[32];
+  uint8_t ref_mem[128];
+  uint8_t hopper_mem[hopper_sizeof()];
+  hopper_config_t cfg = {
+      .abi_version = HOPPER_ABI_VERSION,
+      .arena_mem = arena,
+      .arena_bytes = sizeof(arena),
+      .ref_mem = ref_mem,
+      .ref_count = 2,
+      .catalog = &g_catalog,
+  };
+  hopper_t *h = NULL;
+  assert(hopper_init(hopper_mem, &cfg, &h) == HOPPER_OK);
+  hopper_result_ref_t r = hopper_record(h, 3);
+  assert(r.ok);
+  uint8_t buf[4];
+  hopper_bytes_mut_t dst = {buf, sizeof(buf)};
+  hopper_err_t err = hopper_field_get_bytes(h, r.ref, 0, dst);
+  assert(err == HOPPER_E_BOUNDS);
+}
+
+static void test_mask_zero_suppression(void) {
+  uint8_t arena[128];
+  uint8_t ref_mem[128];
+  uint8_t hopper_mem[hopper_sizeof()];
+  hopper_config_t cfg = {
+      .abi_version = HOPPER_ABI_VERSION,
+      .arena_mem = arena,
+      .arena_bytes = sizeof(arena),
+      .ref_mem = ref_mem,
+      .ref_count = 4,
+      .catalog = &g_catalog,
+  };
+  hopper_t *h = NULL;
+  assert(hopper_init(hopper_mem, &cfg, &h) == HOPPER_OK);
+  hopper_result_ref_t r = hopper_record(h, 1);
+  assert(r.ok);
+
+  // Zero value with suppression: expect "+   .00" for mask "+ZZZ.99"
+  check(hopper_field_set_i32(h, r.ref, 5, 0), HOPPER_OK);
+  uint8_t out[16] = {0};
+  hopper_bytes_mut_t buf = {out, sizeof(out)};
+  hopper_result_i32_t fmt = hopper_field_format_display(h, r.ref, 5, buf);
+  assert(fmt.ok && fmt.v == 8);
+  const char expected_zero[] = "+    .00";
+  assert(memcmp(out, expected_zero, fmt.v) == 0);
+
+  // Negative small value with suppression: -0.45 => "-   .45" under "+Z,ZZ.99"
+  check(hopper_field_set_i32(h, r.ref, 5, -45), HOPPER_OK);
+  memset(out, 0, sizeof(out));
+  fmt = hopper_field_format_display(h, r.ref, 5, buf);
+  assert(fmt.ok && fmt.v == 8);
+  const char expected_neg[] = "-    .45";
+  assert(memcmp(out, expected_neg, fmt.v) == 0);
+
+  // Mask with comma and larger digits: reuse field 5 mask (+Z,ZZ.99) with value 99999 => "+9,99.99"
+  check(hopper_field_set_i32(h, r.ref, 5, 99999), HOPPER_OK);
+  memset(out, 0, sizeof(out));
+  fmt = hopper_field_format_display(h, r.ref, 5, buf);
+  assert(fmt.ok && fmt.v == 8);
+  const char expected_max[] = "+9,99.99";
+  assert(memcmp(out, expected_max, fmt.v) == 0);
+}
+
+static void test_partial_overlap(void) {
+  uint8_t arena[64];
+  uint8_t ref_mem[128];
+  uint8_t hopper_mem[hopper_sizeof()];
+  hopper_config_t cfg = {
+      .abi_version = HOPPER_ABI_VERSION,
+      .arena_mem = arena,
+      .arena_bytes = sizeof(arena),
+      .ref_mem = ref_mem,
+      .ref_count = 4,
+      .catalog = &g_catalog,
+  };
+  hopper_t *h = NULL;
+  assert(hopper_init(hopper_mem, &cfg, &h) == HOPPER_OK);
+  hopper_result_ref_t r = hopper_record(h, 4);
+  assert(r.ok);
+
+  uint8_t pattern[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66};
+  check(hopper_field_set_bytes(h, r.ref, 0, (hopper_bytes_t){pattern, sizeof(pattern)}), HOPPER_OK);
+
+  hopper_result_i32_t val = hopper_field_get_i32(h, r.ref, 1);
+  int32_t expected = (int32_t)((uint32_t)0x66 << 24 | (uint32_t)0x55 << 16 | (uint32_t)0x44 << 8 | (uint32_t)0x33);
+  assert(val.ok && val.v == expected);
+
+  // Write numeric and ensure prefix bytes untouched.
+  check(hopper_field_set_i32(h, r.ref, 1, -1), HOPPER_OK);
+  uint8_t out[6] = {0};
+  hopper_bytes_mut_t b = {out, sizeof(out)};
+  check(hopper_field_get_bytes(h, r.ref, 0, b), HOPPER_OK);
+  assert(out[0] == 0x11 && out[1] == 0x22);
+  // Overlapped region should be 0xFF for -1 LE 32-bit.
+  assert(out[2] == 0xFF && out[3] == 0xFF && out[4] == 0xFF && out[5] == 0xFF);
+}
+
+static void test_scaled_comp_fields(void) {
+  uint8_t arena[64];
+  uint8_t ref_mem[128];
+  uint8_t hopper_mem[hopper_sizeof()];
+  hopper_config_t cfg = {
+      .abi_version = HOPPER_ABI_VERSION,
+      .arena_mem = arena,
+      .arena_bytes = sizeof(arena),
+      .ref_mem = ref_mem,
+      .ref_count = 4,
+      .catalog = &g_catalog,
+  };
+  hopper_t *h = NULL;
+  assert(hopper_init(hopper_mem, &cfg, &h) == HOPPER_OK);
+  hopper_result_ref_t r = hopper_record(h, 5);
+  assert(r.ok);
+
+  // COMP with scale: digits=4, scale=1. Value 1234 (->123.4) fits.
+  check(hopper_field_set_i32(h, r.ref, 0, 1234), HOPPER_OK);
+  hopper_result_i32_t cv = hopper_field_get_i32(h, r.ref, 0);
+  assert(cv.ok && cv.v == 1234);
+  // Overflow at 10000.
+  assert(hopper_field_set_i32(h, r.ref, 0, 10000) == HOPPER_E_OVERFLOW);
+
+  // COMP-3 with scale: digits=5, scale=1. 54321 fits; 100000 overflows.
+  check(hopper_field_set_i32(h, r.ref, 1, 54321), HOPPER_OK);
+  hopper_result_i32_t pv = hopper_field_get_i32(h, r.ref, 1);
+  assert(pv.ok && pv.v == 54321);
+  assert(hopper_field_set_i32(h, r.ref, 1, 100000) == HOPPER_E_OVERFLOW);
+}
+
+static void test_overlay_separate(void) {
+  uint8_t arena[64];
+  uint8_t ref_mem[128];
+  uint8_t hopper_mem[hopper_sizeof()];
+  hopper_config_t cfg = {
+      .abi_version = HOPPER_ABI_VERSION,
+      .arena_mem = arena,
+      .arena_bytes = sizeof(arena),
+      .ref_mem = ref_mem,
+      .ref_count = 4,
+      .catalog = &g_catalog,
+  };
+  hopper_t *h = NULL;
+  assert(hopper_init(hopper_mem, &cfg, &h) == HOPPER_OK);
+  hopper_result_ref_t r = hopper_record(h, 6);
+  assert(r.ok);
+
+  check(hopper_field_set_i32(h, r.ref, 0, 1234), HOPPER_OK);
+  const uint8_t payload[4] = {'A', 'B', 'C', 'D'};
+  check(hopper_field_set_bytes(h, r.ref, 1, (hopper_bytes_t){payload, sizeof(payload)}), HOPPER_OK);
+
+  hopper_result_i32_t num = hopper_field_get_i32(h, r.ref, 0);
+  assert(num.ok && num.v == 1234);
+  uint8_t out[4] = {0};
+  hopper_bytes_mut_t buf = {out, sizeof(out)};
+  check(hopper_field_get_bytes(h, r.ref, 1, buf), HOPPER_OK);
+  assert(memcmp(out, "ABCD", 4) == 0);
+}
+
 static void test_scale_overflow(void) {
   uint8_t arena[64];
   uint8_t ref_mem[128];
@@ -458,6 +763,11 @@ int main(void) {
   test_bounds_and_invalid();
   test_comp3_bad_sign();
   test_overlay_bounds();
+  test_bad_field_bounds();
+  test_partial_overlap();
+  test_scaled_comp_fields();
+  test_overlay_separate();
+  test_mask_zero_suppression();
   test_scale_overflow();
   printf("All Hopper tests passed.\n");
   return 0;
