@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Frogfish
+// SPDX-License-Identifier: Apache-2.0
+// Author: Alexander Croft <alex@frogfish.io>
+
 #include <limits.h>
 #include <stdint.h>
 #include <string.h>
@@ -59,6 +63,10 @@ size_t hopper_sizeof(void) {
 
 size_t hopper_ref_entry_sizeof(void) {
   return sizeof(hopper_ref_entry_t);
+}
+
+uint32_t hopper_version(void) {
+  return HOPPER_ABI_VERSION;
 }
 
 hopper_err_t hopper_init(void *hopper_storage, const hopper_config_t *cfg, hopper_t **out) {

@@ -1,3 +1,7 @@
+<!-- SPDX-FileCopyrightText: 2026 Frogfish -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Author: Alexander Croft <alex@frogfish.io> -->
+
 # Hopper Host Specification
 
 *Grace Hopper taught the world that languages should serve people, not the other way around. Hopper is a small homage to that idea: structured records you can trust, sitting on top of a fixed arena you can reason about.*

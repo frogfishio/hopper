@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Frogfish
+// SPDX-License-Identifier: Apache-2.0
+// Author: Alexander Croft <alex@frogfish.io>
+
 // Internal PIC helpers for Hopper runtime (not part of the public ABI).
 #ifndef HOPPER_PIC_H
 #define HOPPER_PIC_H

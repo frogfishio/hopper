@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Frogfish
+# SPDX-License-Identifier: Apache-2.0
+# Author: Alexander Croft <alex@frogfish.io>
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build and test
+        run: |
+          make check

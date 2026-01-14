@@ -1,3 +1,7 @@
+<!-- SPDX-FileCopyrightText: 2026 Frogfish -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Author: Alexander Croft <alex@frogfish.io> -->
+
 # Hopper Conformance Checklist
 
 Use this list to verify host/runtime behavior against the Hopper spec.

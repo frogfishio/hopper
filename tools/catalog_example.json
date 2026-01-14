@@ -1,0 +1,31 @@
+{
+  "abi_version": 1,
+  "layouts": [
+    {
+      "name": "Sample",
+      "layout_id": 1,
+      "record_bytes": 24,
+      "fields": [
+        {
+          "name": "raw",
+          "offset": 0,
+          "size": 4,
+          "kind": "bytes",
+          "pad_byte": 32
+        },
+        {
+          "name": "num",
+          "offset": 4,
+          "size": 3,
+          "kind": "num_i32",
+          "pic": {
+            "digits": 3,
+            "scale": 0,
+            "is_signed": false,
+            "usage": "display"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,3 +1,7 @@
+<!-- SPDX-FileCopyrightText: 2026 Frogfish -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Author: Alexander Croft <alex@frogfish.io> -->
+
 # Hopper ABI Guide
 
 This document captures the frozen public ABI for Hopper as a universal C-callable library.

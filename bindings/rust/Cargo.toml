@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Frogfish
+# SPDX-License-Identifier: Apache-2.0
+# Author: Alexander Croft <alex@frogfish.io>
+
+[package]
+name = "hopper-rs"
+version = "0.1.0"
+edition = "2021"
+links = "hopper"
+
+[build-dependencies]
+bindgen = "0.69"
+pkg-config = "0.3"
+
+[dependencies]
+libc = "0.2"

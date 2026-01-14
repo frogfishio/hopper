@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Frogfish
+// SPDX-License-Identifier: Apache-2.0
+// Author: Alexander Croft <alex@frogfish.io>
+
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -758,6 +762,8 @@ static void test_scale_overflow(void) {
 }
 
 int main(void) {
+  // Sanity: version function returns ABI macro.
+  assert(hopper_version() == HOPPER_ABI_VERSION);
   test_all();
   test_oom_and_reset();
   test_bounds_and_invalid();

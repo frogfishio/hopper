@@ -175,6 +175,8 @@ typedef struct hopper_config_s {
 size_t hopper_sizeof(void);
 // Size in bytes required for one ref table entry (useful for sizing ref_mem).
 size_t hopper_ref_entry_sizeof(void);
+// Returns the ABI version this library was built with (same as HOPPER_ABI_VERSION).
+uint32_t hopper_version(void);
 hopper_err_t hopper_init(void *hopper_storage, const hopper_config_t *cfg, hopper_t **out);
 
 // Resets arena cursor + ref allocation pointer.

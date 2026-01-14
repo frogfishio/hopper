@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Frogfish
+# SPDX-License-Identifier: Apache-2.0
+# Author: Alexander Croft <alex@frogfish.io>
+
 CC ?= cc
 CFLAGS ?= -std=c99 -Wall -Wextra -pedantic -Iinclude
 AR ?= ar
@@ -8,13 +12,16 @@ PKGCONFIGDIR ?= $(LIBDIR)/pkgconfig
 
 SRC := src/hopper.c src/pic.c
 OBJ := $(SRC:.c=.o)
+EXAMPLES := examples/basic
+PY_EXAMPLE := bindings/python/example.py
+RUST_DIR := bindings/rust
 
 TEST_BIN := test/bin/hopper_tests
 SHARED := libhopper.so
 STATIC := libhopper.a
 PCFILE := hopper.pc
 
-.PHONY: all clean test check
+.PHONY: all clean test check python-example rust-example
 all: $(STATIC) $(SHARED)
 
 %.o: %.c
@@ -33,6 +40,17 @@ check: test
 
 $(TEST_BIN): test/main.c $(STATIC) | test/bin
 	$(CC) $(CFLAGS) -o $@ test/main.c $(STATIC)
+
+examples: $(EXAMPLES)
+
+examples/basic: examples/basic.c $(STATIC)
+	$(CC) $(CFLAGS) -o $@ examples/basic.c $(STATIC)
+
+python-example: $(STATIC)
+	HOPPER_LIB=./libhopper.so python3 $(PY_EXAMPLE)
+
+rust-example:
+	cd $(RUST_DIR) && cargo build
 
 test/bin:
 	mkdir -p test/bin
