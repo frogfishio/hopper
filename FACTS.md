@@ -1,6 +1,6 @@
 # FACTS
 
-1) Edit-mask semantics (DISPLAY formatting)
+## 1) Edit-mask semantics (DISPLAY formatting)
 
 Scope (MVP): Edit masks are output-only formatting for numeric DISPLAY fields. They never accept input.
 
@@ -46,9 +46,9 @@ Failure conditions (MUST)
 
 This gives you a fully deterministic, testable rule set.
 
-⸻
+---
 
-2) DISPLAY signed fields (leading sign only, MVP)
+## 2) DISPLAY signed fields (leading sign only, MVP)
 
 Freeze this hard:
 
@@ -65,9 +65,9 @@ No overpunch / trailing sign (MUST NOT, for now)
 
 This keeps the runtime small and makes cross-language use trivial.
 
-⸻
+---
 
-3) COMP endianness (little-endian, everywhere)
+## 3) COMP endianness (little-endian, everywhere)
 
 Yes: COMP is always little-endian in memory. (MUST)
 
@@ -79,9 +79,9 @@ So:
 	•	COMP reads/writes i16/i32 using LE encoding.
 	•	Field size determines width (2 or 4 bytes). Anything else → HOPPER_E_BAD_FIELD.
 
-⸻
+---
 
-4) COMP-3 sign nibble set (C/D/F accepted)
+## 4) COMP-3 sign nibble set (C/D/F accepted)
 
 Yes: freeze it:
 
@@ -94,9 +94,9 @@ All other sign nibbles → HOPPER_E_PIC_INVALID
 
 This is the sweet spot: compatible with real-world mainframe data and still strict.
 
-⸻
+---
 
-5) Final “go ahead” set of assumptions
+## 5) Final “go ahead” set of assumptions
 
 If you implement with:
 	•	Edit mask rules above
@@ -106,7 +106,7 @@ If you implement with:
 
 …then yes, proceed. Those are exactly the kind of early freezes that prevent churn later.
 
-⸻
+---
 
 Tiny addendum (one more freeze point that will save pain)
 
@@ -115,5 +115,4 @@ Scaling rule for numeric APIs:
 	•	Example: PIC 9(5)V99 stores “123.45” as 12345.
 	•	Therefore scale affects validation (range), but not the external type.
 
-This matches your Zing story and keeps Hopper BigInt-agnostic.
 

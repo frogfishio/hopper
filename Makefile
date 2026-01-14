@@ -10,6 +10,17 @@ PREFIX ?= /usr/local
 LIBDIR ?= $(PREFIX)/lib
 INCLUDEDIR ?= $(PREFIX)/include
 PKGCONFIGDIR ?= $(LIBDIR)/pkgconfig
+OS := $(shell uname -s)
+
+SHARED_EXT := so
+SHARED_LDFLAGS := -shared -Wl,-soname,libhopper.so.$(SONAME)
+SONAME_LINK := libhopper.so.$(SONAME)
+
+ifeq ($(OS),Darwin)
+SHARED_EXT := dylib
+SHARED_LDFLAGS := -dynamiclib -Wl,-install_name,@rpath/libhopper.$(SHARED_EXT)
+SONAME_LINK :=
+endif
 
 SRC := src/hopper.c src/pic.c
 OBJ := $(SRC:.c=.o)
@@ -18,9 +29,10 @@ PY_EXAMPLE := bindings/python/example.py
 RUST_DIR := bindings/rust
 
 TEST_BIN := test/bin/hopper_tests
-SHARED := libhopper.so
+SHARED := libhopper.$(SHARED_EXT)
 STATIC := libhopper.a
 PCFILE := hopper.pc
+DISTDIR := dist
 
 .PHONY: all clean test check python-example rust-example catalog-load
 all: $(STATIC) $(SHARED)
@@ -32,7 +44,7 @@ $(STATIC): $(OBJ)
 	$(AR) rcs $@ $^
 
 $(SHARED): $(OBJ)
-	$(CC) -shared -Wl,-soname,libhopper.so.$(SONAME) -o $@ $^
+	$(CC) $(SHARED_LDFLAGS) -o $@ $^
 
 test: $(STATIC) $(SHARED) $(TEST_BIN)
 	$(TEST_BIN)
@@ -60,7 +72,7 @@ test/bin:
 	mkdir -p test/bin
 
 clean:
-	rm -f $(OBJ) $(STATIC) $(SHARED) $(TEST_BIN) $(PCFILE)
+	rm -rf $(OBJ) $(STATIC) $(SHARED) $(TEST_BIN) $(PCFILE) $(DISTDIR)
 
 install: $(STATIC) $(SHARED) $(PCFILE)
 	mkdir -p $(DESTDIR)$(INCLUDEDIR) $(DESTDIR)$(LIBDIR) $(DESTDIR)$(PKGCONFIGDIR)
@@ -68,6 +80,17 @@ install: $(STATIC) $(SHARED) $(PCFILE)
 	cp $(STATIC) $(DESTDIR)$(LIBDIR)/
 	cp $(SHARED) $(DESTDIR)$(LIBDIR)/
 	cp $(PCFILE) $(DESTDIR)$(PKGCONFIGDIR)/
+
+dist: $(STATIC) $(SHARED) $(PCFILE)
+	rm -rf $(DISTDIR)
+	mkdir -p $(DISTDIR)/lib $(DISTDIR)/include $(DISTDIR)/pkgconfig
+	cp include/hopper.h $(DISTDIR)/include/
+	cp $(STATIC) $(DISTDIR)/lib/
+	cp $(SHARED) $(DISTDIR)/lib/
+ifneq ($(SONAME_LINK),)
+	ln -sf $(notdir $(SHARED)) $(DISTDIR)/lib/$(SONAME_LINK)
+endif
+	cp $(PCFILE) $(DISTDIR)/pkgconfig/
 
 $(PCFILE):
 	@echo "prefix=$(PREFIX)" > $(PCFILE)

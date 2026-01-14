@@ -10,6 +10,7 @@ Current release: 1.0.0 (ABI version 1).
 ```sh
 make check          # build static/shared libs and run tests
 make install        # install headers, libs, pkg-config (PREFIX=/usr/local by default)
+make dist           # stage headers/libs/pkgconfig into dist/
 ```
 
 Artifacts:
@@ -17,6 +18,7 @@ Artifacts:
 - `libhopper.so`/`dylib` (shared, SONAME 1)
 - `hopper.pc` (pkg-config)
 - Header: `include/hopper.h`
+- Staged dist/: headers/libs/pkgconfig for packaging
 
 ## Minimal C usage
 See `examples/basic.c`:
