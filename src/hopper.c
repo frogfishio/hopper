@@ -57,6 +57,10 @@ size_t hopper_sizeof(void) {
   return sizeof(hopper_t);
 }
 
+size_t hopper_ref_entry_sizeof(void) {
+  return sizeof(hopper_ref_entry_t);
+}
+
 hopper_err_t hopper_init(void *hopper_storage, const hopper_config_t *cfg, hopper_t **out) {
   if (!hopper_storage || !cfg || !out) {
     return HOPPER_E_BAD_FIELD;
@@ -342,7 +346,7 @@ hopper_err_t hopper_field_get_bytes(hopper_t *h, hopper_ref_t ref, uint32_t fiel
     return HOPPER_E_BAD_FIELD;
   }
   if (out.len < field->size) {
-    return HOPPER_E_PIC_INVALID;
+    return HOPPER_E_DST_TOO_SMALL;
   }
   memcpy(out.ptr, base, field->size);
   return HOPPER_OK;
@@ -390,7 +394,7 @@ static hopper_err_t format_display_mask(const hopper_field_t *field, int32_t val
     return HOPPER_E_BAD_FIELD;
   }
   if (out.len < field->pic.mask_len) {
-    return HOPPER_E_PIC_INVALID;
+    return HOPPER_E_DST_TOO_SMALL;
   }
 
   uint16_t digits = field->pic.digits;

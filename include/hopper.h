@@ -44,9 +44,10 @@ typedef enum hopper_err_e {
   HOPPER_E_PIC_INVALID = 7,
   HOPPER_E_PIC_SCALE   = 8,
   HOPPER_E_OVERFLOW    = 9,
+  HOPPER_E_DST_TOO_SMALL = 10,
 
   // Generic
-  HOPPER_E_UNSUPPORTED = 10,
+  HOPPER_E_UNSUPPORTED = 11,
 } hopper_err_t;
 
 // A tiny Result type that stays C ABI-friendly.
@@ -172,6 +173,8 @@ typedef struct hopper_config_s {
 // Initializes a hopper_t in caller-provided storage.
 // hopper_storage must be at least hopper_sizeof().
 size_t hopper_sizeof(void);
+// Size in bytes required for one ref table entry (useful for sizing ref_mem).
+size_t hopper_ref_entry_sizeof(void);
 hopper_err_t hopper_init(void *hopper_storage, const hopper_config_t *cfg, hopper_t **out);
 
 // Resets arena cursor + ref allocation pointer.
