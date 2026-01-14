@@ -4,6 +4,8 @@
 
 # Hopper ABI Guide
 
+Current release: 1.0.0 (ABI version 1).
+
 This document captures the frozen public ABI for Hopper as a universal C-callable library.
 
 ## Versioning

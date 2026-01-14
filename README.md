@@ -6,6 +6,8 @@
 
 *Grace Hopper taught the world that languages should serve people, not the other way around. Hopper is a small homage to that idea: structured records you can trust, sitting on top of a fixed arena you can reason about.*
 
+Current release: 1.0.0 (ABI version 1).
+
 Hopper is an **arena-backed record system** with **explicit layouts** (offsets, sizes, encodings) and **safe access** (bounds checks, typed reads/writes). It’s designed for the part of systems programming where you want **byte-for-byte control** without falling back to “raw pointer soup”.
 
 Think: *mainframe-style record discipline*, but as a small, embeddable library.

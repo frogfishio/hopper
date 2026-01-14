@@ -5,6 +5,7 @@
 CC ?= cc
 CFLAGS ?= -std=c99 -Wall -Wextra -pedantic -Iinclude
 AR ?= ar
+SONAME ?= 1
 PREFIX ?= /usr/local
 LIBDIR ?= $(PREFIX)/lib
 INCLUDEDIR ?= $(PREFIX)/include
@@ -31,7 +32,7 @@ $(STATIC): $(OBJ)
 	$(AR) rcs $@ $^
 
 $(SHARED): $(OBJ)
-	$(CC) -shared -o $@ $^
+	$(CC) -shared -Wl,-soname,libhopper.so.$(SONAME) -o $@ $^
 
 test: $(STATIC) $(SHARED) $(TEST_BIN)
 	$(TEST_BIN)
@@ -76,6 +77,6 @@ $(PCFILE):
 	@echo "" >> $(PCFILE)
 	@echo "Name: hopper" >> $(PCFILE)
 	@echo "Description: Hopper runtime" >> $(PCFILE)
-	@echo "Version: 1" >> $(PCFILE)
+	@echo "Version: 1.0.0" >> $(PCFILE)
 	@echo "Cflags: -I\$${includedir}" >> $(PCFILE)
 	@echo "Libs: -L\$${libdir} -lhopper" >> $(PCFILE)
