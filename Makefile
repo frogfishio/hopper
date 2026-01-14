@@ -21,7 +21,7 @@ SHARED := libhopper.so
 STATIC := libhopper.a
 PCFILE := hopper.pc
 
-.PHONY: all clean test check python-example rust-example
+.PHONY: all clean test check python-example rust-example catalog-load
 all: $(STATIC) $(SHARED)
 
 %.o: %.c
@@ -51,6 +51,9 @@ python-example: $(STATIC)
 
 rust-example:
 	cd $(RUST_DIR) && cargo build
+
+catalog-load: $(STATIC)
+	HOPPER_LIB=./libhopper.so python3 tools/load_catalog.py tools/catalog_example.json
 
 test/bin:
 	mkdir -p test/bin

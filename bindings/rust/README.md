@@ -51,5 +51,12 @@ pkg-config = "0.3"
 - Mirror the error enum as a Rust enum (`#[repr(i32)]`) if you prefer type safety.
 - Remember to allocate arena/ref memory in Rust (e.g., `Vec<u8>`) and pass pointers/lengths matching Hopper’s config.
 
-## Minimal Rust example (unsafe FFI)
-See `src/lib.rs` after running `cargo build` (bindgen generates bindings into `OUT_DIR`). The generated API matches `hopper.h`; call `version()` for a safe wrapper around `hopper_version()`.
+## Minimal Rust example
+Run `cargo build` (requires network to fetch crates). The raw FFI lives under `hopper_rs::ffi`, and safe helpers include:
+```rust
+fn main() {
+    println!("Hopper version {}", hopper_rs::version());
+    println!("ctx size {}", hopper_rs::ctx_size());
+    println!("ref entry size {}", hopper_rs::ref_entry_size());
+}
+```
